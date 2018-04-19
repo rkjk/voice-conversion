@@ -1,0 +1,17 @@
+git clone https://github.gatech.edu/lrichert3/PGM-8003-project
+
+# Or, if you already have the repository stored locally, navigate to that folder and use
+git pull
+##
+
+git branch my_copy
+git checkout my_copy
+
+git add *
+git commit -m "added github workflow example"
+git checkout master
+git pull
+git merge my_copy
+git push origin master
+git brange -d my_copy
+
