@@ -42,7 +42,7 @@ def create_dict(filename):
 
 
 
-def dtw_list_store(source, target, dtw_source, dtw_target):
+def dtw_list_store(source, target, source_list, target_list):
 
     """
     Store the Time aligned frames for the Source and Target in separate lists
@@ -61,16 +61,12 @@ def dtw_list_store(source, target, dtw_source, dtw_target):
     source = psf.mfcc(source, 16000)
     target = psf.mfcc(target, 16000)
 
-    source_list = []
-    target_list = []
-
     distance, path = fastdtw(source, target, dist=euclidean)
 
     for vertex in path:
-        dtw_source.append(source[vertex[0],:])
-        dtw_target.append(target[vertex[1],:])
+        source_list.append(source[vertex[0],:])
+        target_list.append(target[vertex[1],:])
 
-    return dtw_source, dtw_target
 
 
 def feature_dtw(source_list, target_list, source_dict, target_dict, source_wav, target_wav):
@@ -109,9 +105,8 @@ def feature_dtw(source_list, target_list, source_dict, target_dict, source_wav, 
                     source_temp = source_wav[l1[0] : l1[1]]
                     target_temp = target_wav[l2[0] : l2[1]]
 
-                    source_list, target_list = dtw_list_store(source_temp, target_temp, source_list, target_list)
+                    #source_list, target_list = dtw_list_store(source_temp, target_temp, source_list, target_list)
+                    dtw_list_store(source_temp, target_temp, source_list, target_list)
 
 
     assert(len(source_list) == len(target_list))
-
-    return source_list, target_list
