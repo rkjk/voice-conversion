@@ -1,0 +1,159 @@
+import numpy as np
+import os
+import scipy.io.wavfile
+import python_speech_features as psf
+from sphfile import SPHFile
+from sys import exit
+from scipy.spatial.distance import euclidean
+from fastdtw import fastdtw
+
+
+
+
+def create_dict(filename):
+    """ Function to take as input PHN file
+    Read the PHN file line by line and store in a dictionary with phonemes as keys
+    """
+
+
+    # Read Phone transcription
+    with open(filename, "r") as phn_file:
+        phn_content = phn_file.readlines()
+
+    phn_content = [x.strip() for x in phn_content]
+
+    source_dict = {}
+
+    for i, data in enumerate(phn_content):
+        li = list(data.split(" "))
+        li[0] = int(li[0])
+        li[1] = int(li[1])
+
+        if(li[2] in source_dict.keys()): 
+            source_dict[li[2]][i] = [li[0],li[1]]
+        else:
+            temp_dict = {i:[li[0], li[1]]}
+            source_dict[li[2]] = temp_dict
+
+    return source_dict
+
+def main():
+    dir1 = '/home/raghav/sem2/speech/proj/TIMIT/TIMIT/TRAIN/DR6/MABC0/'
+    dir2 = '/home/raghav/sem2/speech/proj/TIMIT/TIMIT/TRAIN/DR6/MAJP0/'
+
+    source_dict = create_dict(dir1+'SA1.PHN')
+    target_dict = create_dict(dir2+'SA1.PHN')
+
+    source = SPHFile(dir1+'SA1.WAV')
+    target = SPHFile(dir1+'SA1.WAV')
+
+    source.write_wav('source.wav')
+    target.write_wav('target.wav')
+
+    fs, source = scipy.io.wavfile.read('source.wav')
+    fs, target = scipy.io.wavfile.read('target.wav')
+
+    source_dtw, target_dtw = feature_dtw(source_dict, target_dict, source, target)
+
+    source_list = []
+    target_list = []
+
+
+
+## Store the Time aligned frames for the Source and Target in separate lists
+## List is passed as reference, a common list for every phoneme 
+
+def dtw_result_store(source, target, dtw_source, dtw_target):
+    source = psf.mfcc(source, 16000)
+    target = psf.mfcc(target, 16000)
+
+    source_list = []
+    target_list = []
+
+    distance, path = fastdtw(source, target, dist=euclidean)
+
+    for vertex in path:
+        dtw_source.append(source[vertex[0],:])
+        dtw_target.append(target[vertex[1],:])
+
+        source_list.append(source[vertex[0],:])
+        target_list.append(target[vertex[1],:])
+
+    return dtw_source, dtw_target, source_list, target_list
+
+
+def dtw_list_store(source, target, dtw_source, dtw_target):
+    source = psf.mfcc(source, 16000)
+    target = psf.mfcc(target, 16000)
+
+    source_list = []
+    target_list = []
+
+    distance, path = fastdtw(source, target, dist=euclidean)
+
+    for vertex in path:
+        dtw_source.append(source[vertex[0],:])
+        dtw_target.append(target[vertex[1],:])
+
+    return dtw_source, dtw_target
+
+
+def feature_dtw(source_dict, target_dict, source_wav, target_wav):
+
+    dtw_source_dict = dict.fromkeys(source_dict.keys(),{})
+    dtw_target_dict = dict.fromkeys(source_dict.keys(),{})
+
+    source_list = []
+    target_list = []
+
+    ## Just collect pairs of source and target MFCCs disregarding time time/phoneme information
+
+    """Iterate over each phoneme present in the source dictionary.
+    If the phoneme is also found in the target, do DTW between all pairs of frames
+    and get the distance and path. 
+    Store the corresponding pairs in a dictionary
+    """
+
+    for source_keys in source_dict.keys():
+
+        if(source_keys in target_dict.keys()):
+            dtw_source = []
+            dtw_target = []
+
+
+            source_phn_dict = source_dict[source_keys]
+            target_phn_dict = target_dict[source_keys]
+
+
+            for count1, i in enumerate(source_phn_dict.keys()):
+                for count2, j in enumerate(target_phn_dict.keys()):
+                    l1 = source_phn_dict[i]
+                    l2 = target_phn_dict[j]
+                    source_temp = source_wav[l1[0] : l1[1]]
+                    target_temp = target_wav[l2[0] : l2[1]]
+
+                    #dtw_source, dtw_target = dtw_result_store(source_temp, target_temp, dtw_source, dtw_target)
+                    source_list, target_list = dtw_list_store(source_temp, target_temp, source_list, target_list)
+
+            #dtw_source_dict[source_keys] = dtw_source
+            #dtw_target_dict[source_keys] = dtw_target
+
+        #assert(len(dtw_target_dict[source_keys]) == len(dtw_source_dict[source_keys]))
+    assert(len(source_list) == len(target_list))
+    #print(len(source_list))
+
+    #return dtw_source_dict, dtw_target_dict
+    return source_list, target_list
+
+                    
+
+                    
+main()
+
+
+    #data_mfcc_1 = psf.mfcc(data1, fs)
+    #data_mfcc_2 = psf.mfcc(data2, fs)
+
+    #print(data_mfcc_1.shape)
+    #print(data_mfcc_2.shape)
+
