@@ -1,6 +1,8 @@
 import tensorflow as tf
 import numpy as np
 import python_speech_features as psf
+from sphfile import SPHFile
+import scipy.io.wavfile
 from sys import exit
 
 sess = tf.Session()
@@ -17,33 +19,41 @@ out_h = sess.run('out_h:0')
 
 
 def neural_network(x):
+    """
+    Feedforward NN to evaluate the function
+    """
 
 
     layer_1 = tf.add(tf.matmul(x, h1), b1)
-    print("layer_1 :", layer_1.get_shape())
-    layer_2 = tf.add(tf.matmul(layer_1, h2), b2)
-    print("layer_2 :", layer_2.get_shape())
-    out_layer = tf.matmul(layer_2, out_h + out_b)
 
+    layer_2 = tf.add(tf.matmul(layer_1, h2), b2)
+    
+    out_layer = tf.matmul(layer_2, out_h + out_b)
 
     return out_layer
 
-#rt = tf.constant(1, shape=(1,13), dtype=tf.float32)
-rt = np.ones(13).reshape(-1,13)
 
 X = tf.placeholder('float32', [1, 13], name="X")
-#Y = tf.placeholder('float32', [1, 13], name="Y")
 Y = neural_network(X)
 
-source = [np.random.rand(13).reshape(-1,13), np.ones(13).reshape(-1,13)]
+filename = '/home/raghav/sem2/speech/proj/TIMIT/TIMIT/TRAIN/DR6/MABC0/SA1.WAV'
+source = SPHFile(filename)
+source.write_wav('source.wav')
+fs, source = scipy.io.wavfile.read('source.wav')
+source = psf.mfcc(source, fs)
+print(source.shape)
 
 target = []
 
 with sess.as_default():
 
     for x in source:
+        x = x.reshape(-1,13)
 
         sess.run(Y, feed_dict={X:x})
-        target.append(sess.run(Y, feed_dict={X:x}))
+        target.append(sess.run(Y, feed_dict={X:x}).reshape(-1,1))
+        #target.append(sess.run(Y, feed_dict={X:x}))
 
-print(target)
+target = np.squeeze(target)
+print(target.shape)
+np.save('converted-speech.npy', target)
