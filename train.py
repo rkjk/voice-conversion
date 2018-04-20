@@ -2,21 +2,20 @@ import tensorflow as tf
 import numpy as np
 from sys import exit
 
-source_data = np.load('source_input.npy')
-target_data = np.load('target_input.npy')
+#source_data = np.load('source_input.npy')
+#target_data = np.load('target_input.npy')
+source_data = np.load('source_input_logfbank.npy')
+target_data = np.load('target_input_logfbank.npy')
 
-inp = tf.convert_to_tensor(source_data)
-outp = tf.convert_to_tensor(target_data)
-
-learning_rate = 0.001
+learning_rate = 0.1
 num_steps = 100
 batch_size = 10
-dispay_step = 50
 
 n_hidden_1 = 10
 n_hidden_2 = 10
-num_input = 13
-num_output = 13
+num_input = source_data.shape[1]
+num_output = target_data.shape[1]
+
 
 X = tf.placeholder('float32', [1, num_input], name="X")
 Y = tf.placeholder('float32', [1,num_output], name="Y")
@@ -56,8 +55,8 @@ with tf.Session() as sess:
     sess.run(init)
 
     for x,y in zip(source_data, target_data):
-        x = x.reshape(-1,13)
-        y = y.reshape(-1,13)
+        x = x.reshape(-1,num_input)
+        y = y.reshape(-1,num_output)
         #print(sess.run(X, feed_dict={X:x}))
         #print(sess.run(Y, feed_dict={Y:y}))
 
@@ -65,6 +64,4 @@ with tf.Session() as sess:
 
         loss = sess.run(loss_op, feed_dict={X:x, Y:y})
 
-    saver.save(sess, './my_test_model', global_step=1000)
-    
-    print(sess.run('b1:0'))        
+    saver.save(sess, './models/my_test_model-logfbank')

@@ -2,6 +2,7 @@ import numpy as np
 import os
 import scipy.io.wavfile
 import python_speech_features as psf
+import librosa
 from sphfile import SPHFile
 from sys import exit
 from scipy.spatial.distance import euclidean
@@ -58,8 +59,11 @@ def dtw_list_store(source, target, source_list, target_list):
 
 
 
-    source = psf.mfcc(source, 16000)
-    target = psf.mfcc(target, 16000)
+    #source = psf.mfcc(source, 16000)
+    #target = psf.mfcc(target, 16000)
+
+    source = psf.logfbank(source, 16000)
+    target = psf.logfbank(target, 16000)
 
     distance, path = fastdtw(source, target, dist=euclidean)
 

@@ -115,8 +115,8 @@ def user_io_2():
 
     print(source_list.shape, target_list.shape)
 
-    np.save('source_input.npy', source_list)
-    np.save('target_input.npy', target_list)
+    np.save('source_input_logfbank.npy', source_list)
+    np.save('target_input_logfbank.npy', target_list)
 
 
 user_io_2()

@@ -7,8 +7,9 @@ from sys import exit
 
 sess = tf.Session()
 
-saver = tf.train.import_meta_graph('my_test_model-1000.meta')
-saver.restore(sess, tf.train.latest_checkpoint('./'))
+#saver = tf.train.import_meta_graph('my_test_model-1000.meta')
+saver = tf.train.import_meta_graph('models/my_test_model-logfbank.meta')
+saver.restore(sess, tf.train.latest_checkpoint('./models'))
 
 b1 = sess.run('b1:0')
 b2 = sess.run('b2:0')
@@ -33,22 +34,24 @@ def neural_network(x):
     return out_layer
 
 
-X = tf.placeholder('float32', [1, 13], name="X")
-Y = neural_network(X)
 
 filename = '/home/raghav/sem2/speech/proj/TIMIT/TIMIT/TRAIN/DR6/MABC0/SA1.WAV'
 source = SPHFile(filename)
 source.write_wav('source.wav')
 fs, source = scipy.io.wavfile.read('source.wav')
-source = psf.mfcc(source, fs)
+source = psf.logfbank(source, fs)
 print(source.shape)
+num_input = source.shape[1]
+
+X = tf.placeholder('float32', [1, num_input], name="X")
+Y = neural_network(X)
 
 target = []
 
 with sess.as_default():
 
     for x in source:
-        x = x.reshape(-1,13)
+        x = x.reshape(-1,num_input)
 
         sess.run(Y, feed_dict={X:x})
         target.append(sess.run(Y, feed_dict={X:x}).reshape(-1,1))
