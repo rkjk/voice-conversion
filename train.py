@@ -18,19 +18,19 @@ n_hidden_2 = 10
 num_input = 13
 num_output = 13
 
-X = tf.placeholder('float32', [1, num_input])
-Y = tf.placeholder('float32', [1,num_output])
+X = tf.placeholder('float32', [1, num_input], name="X")
+Y = tf.placeholder('float32', [1,num_output], name="Y")
 
 # Store layers weight & bias
 weights = {
-            'h1': tf.Variable(tf.random_normal([num_input, n_hidden_1])),
-                'h2': tf.Variable(tf.random_normal([n_hidden_1, n_hidden_2])),
-                    'out': tf.Variable(tf.random_normal([n_hidden_2, num_output]))
+            'h1': tf.Variable(tf.random_normal([num_input, n_hidden_1]), name='h1'),
+                'h2': tf.Variable(tf.random_normal([n_hidden_1, n_hidden_2]), name='h2'),
+                    'out': tf.Variable(tf.random_normal([n_hidden_2, num_output]), name='out_h')
                     }
 biases = {
-            'b1': tf.Variable(tf.random_normal([n_hidden_1])),
-                'b2': tf.Variable(tf.random_normal([n_hidden_2])),
-                    'out': tf.Variable(tf.random_normal([num_output]))
+            'b1': tf.Variable(tf.random_normal([n_hidden_1]), name='b1'),
+                'b2': tf.Variable(tf.random_normal([n_hidden_2]), name='b2'),
+                    'out': tf.Variable(tf.random_normal([num_output]), name='out_b')
                     }
 
 
@@ -51,6 +51,7 @@ init = tf.global_variables_initializer()
 
 saver = tf.train.Saver()
 
+
 with tf.Session() as sess:
     sess.run(init)
 
@@ -65,3 +66,5 @@ with tf.Session() as sess:
         loss = sess.run(loss_op, feed_dict={X:x, Y:y})
 
     saver.save(sess, './my_test_model', global_step=1000)
+    
+    print(sess.run('b1:0'))        
