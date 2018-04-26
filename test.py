@@ -59,4 +59,4 @@ with sess.as_default():
 
 target = np.squeeze(target)
 print(target.shape)
-np.save('converted-speech.npy', target)
+#np.save('converted-speech.npy', target)
